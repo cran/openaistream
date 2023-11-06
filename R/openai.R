@@ -80,7 +80,7 @@ openai <- R6Class(
     ),
     api_call = function(endpoint, path="", body=NULL, method="GET", headers=list(), query=list(), verbosity=0,return_handle=FALSE) {
       url <- private$api_endpoints[[endpoint]]
-      req <- request(url) %>% req_headers(!!!c(list(Authorization = paste0("Bearer ", private$api_key)), headers))
+      req <- request(url) %>% req_headers(!!!c(list(Authorization = paste0("Bearer ", private$api_key)), headers)) %>% req_method(method)
       if (path != "") {
         paths <- unlist(strsplit(path, "/"))
         for (p in paths) {
@@ -163,7 +163,9 @@ openai <- R6Class(
     #' @param prompt The input text to get completions for.
     #' @param model The model to use for generating completions.
     #' @param stream A boolean indicating whether to stream the results.
-    #' @param num The number of completions to retrieve.
+    #' @param num The num parameter controls the number of text entries returned by a stream in one go.
+    #'            Note that this is different from the n parameter, which specifies the number of results returned.
+    #'            For detailed information on the n parameter, please refer to OpenAI's API documentation.
     #' @param verbosity Verbosity level for the API call.
     #' @param ... Additional parameters as required by the OpenAI API.
     #' @return Completions based on the input prompt.
@@ -173,7 +175,7 @@ openai <- R6Class(
       option$model = model
       option$stream = stream
       if (option$stream) {
-        handle <- private$api_call("completions", body=option, headers=list(Accept="text/event-stream", `Content-Type` = "application/json"), return_handle=TRUE, verbosity=verbosity)
+        handle <- private$api_call("completions", body=option, headers=list(Accept="text/event-stream", `Content-Type` = "application/json"),method = "POST", return_handle=TRUE, verbosity=verbosity)
         return(DataStream$new(requery = handle, num = num))
       } else {
         result <- private$api_call("completions", body=option, headers=list(`Content-Type` = "application/json"),method = "POST", verbosity=verbosity)
@@ -188,7 +190,9 @@ openai <- R6Class(
     #' @param messages A list of message objects, where each message has a role and content.
     #' @param model The model to use for generating chat completions.
     #' @param stream A boolean indicating whether to stream the results.
-    #' @param num The number of chat completions to retrieve.
+    #' @param num The num parameter controls the number of text entries returned by a stream in one go.
+    #'            Note that this is different from the n parameter, which specifies the number of results returned.
+    #'            For detailed information on the n parameter, please refer to OpenAI's API documentation.
     #' @param verbosity Verbosity level for the API call.
     #' @param ... Additional parameters as required by the OpenAI API.
     #' @return Completions based on the conversational context.
@@ -198,7 +202,7 @@ openai <- R6Class(
       option$model = model
       option$stream = stream
       if (option$stream) {
-        handle <- private$api_call("chat_completions", body=option, headers=list(Accept="text/event-stream", `Content-Type` = "application/json"), return_handle=TRUE, verbosity=verbosity)
+        handle <- private$api_call("chat_completions", body=option, headers=list(Accept="text/event-stream", `Content-Type` = "application/json"),method = "POST", return_handle=TRUE, verbosity=verbosity)
         return(DataStream$new(requery = handle , num = num))
       } else {
         result <- private$api_call("chat_completions", body=option, headers=list(`Content-Type` = "application/json"),method = "POST", verbosity=verbosity)
@@ -326,7 +330,7 @@ openai <- R6Class(
     #' @param verbosity Verbosity level for the API call.
     #' @return A list of events related to the specified fine-tuning job.
     fine_tuning_jobs_events=function(job_id,verbosity=0){
-      result <- private$api_call("fine_tuning_jobs", paste0("/", job_id, "/", "events"), verbosity = verbosity)
+      result <- private$api_call("fine_tuning_jobs", paste0("/", job_id, "/", "events"),method = "GET", verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{
@@ -344,7 +348,7 @@ openai <- R6Class(
       option$model <- model
       option$input <- input
 
-      result <- private$api_call("embeddings", body = option, headers = list(`Content-Type` = "application/json"), verbosity = verbosity)
+      result <- private$api_call("embeddings", body = option,method = "POST", headers = list(`Content-Type` = "application/json"), verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{

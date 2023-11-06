@@ -193,7 +193,9 @@ Get completions for a given prompt using a specific model.
 
 \item{\code{...}}{Additional parameters as required by the OpenAI API.}
 
-\item{\code{num}}{The number of completions to retrieve.}
+\item{\code{num}}{The num parameter controls the number of text entries returned by a stream in one go.
+Note that this is different from the n parameter, which specifies the number of results returned.
+For detailed information on the n parameter, please refer to OpenAI's API documentation.}
 
 \item{\code{verbosity}}{Verbosity level for the API call.}
 }
@@ -230,7 +232,9 @@ Generate conversational completions using chat models.
 
 \item{\code{...}}{Additional parameters as required by the OpenAI API.}
 
-\item{\code{num}}{The number of chat completions to retrieve.}
+\item{\code{num}}{The num parameter controls the number of text entries returned by a stream in one go.
+Note that this is different from the n parameter, which specifies the number of results returned.
+For detailed information on the n parameter, please refer to OpenAI's API documentation.}
 
 \item{\code{verbosity}}{Verbosity level for the API call.}
 }
