@@ -9,35 +9,39 @@ Provides methods to interact with OpenAI API including
   Always ensure that the API key is kept private.
 }
 \examples{
-key <- "YOUR_API_KEY"
-#NOTE To retrieve the correct data, it is necessary to provide an 'openaikey';
-# otherwise, an exception will be returned.
+if(file.exists("openai-key")){
+  key <- readLines(file("openai-key"))
+  #NOTE To retrieve the correct data, it is necessary to provide an 'openaikey';
+  # otherwise, an exception will be returned.
+}else{
+  key <- "you_api_key"
+}
 aaa <- openai$new(key)
 #if need proxy
-#aaa$set_proxy("127.0.0.1", 8890)
+#aaa$set_proxy("127.0.0.1", 10890)
 # List model
 aaa$get_model_list()
 \donttest{
 #The following request will cause a timeout when the correct key is not present,
 # so it is not necessary to test it during the check.
 # Upload a file
-file_id <- aaa$files_upload(path = "../../model_newbuy/gpt_F_tuning/st03/test_st04_v01.jsonl")
-
-# Delete a file
-aaa$files_delete(file_id$id, verbosity = 0)
-
+train_file_path<-system.file("exdata","train.jsonl", package = "openaistream")
+file_id <- aaa$files_upload(path = train_file_path,purpose = "fine-tune")
 # Retrieve a file's details
 aaa$files_retrieve(NULL, verbosity = 0)
+# Delete a file
+#aaa$files_delete(file_id$id, verbosity = 0)
 # Get a list of files
 aaa$files_get_list()
+#aaa
+job<-aaa$fine_tuning_jobs_create(model = "gpt-3.5-turbo",training_file = file_id$id)
+aaa$files_delete(file_id$id, verbosity = 0)
 # List fine-tuning jobs
 aaa$fine_tuning_jobs_list(limit = 2, verbosity = 3)
-
 # Retrieve details of a specific fine-tuning job
-aaa$fine_tuning_jobs_retrieve("ftjob-XVOnvAP2owx4fh4B65QQP0Bk", verbosity = 0)
-
+aaa$fine_tuning_jobs_retrieve(job$id, verbosity = 0)
 # Get events related to a specific fine-tuning job
-aaa$fine_tuning_jobs_events("ftjob-XVOnvAP2owx4fh4B65QQP0Bk", verbosity = 3)
+aaa$fine_tuning_jobs_events(job$id, verbosity = 3)
 # Compute embeddings for input data
 aaa$embeddings(model = "text-embedding-ada-002", input = "who are you?")
 # chat test not stream
@@ -64,6 +68,33 @@ streamlg$next_value
 streamlg$close()
 streamlg$next_value
 streamlg$get_state()
+sss<-aaa$audio_speech(input = "Hi, this is a voice transmission test.",response_format="mp3")
+#writeBin(sss,"test.mp3")
+#text_E1<-aaa$audio_transcriptions(path = "test.mp3")
+#text_E2<-aaa$audio_translations(path = "test.mp3")
+pic1<-aaa$images_generations(prompt = "A small bird flies over the ocean")
+#req <- request(pic1$data$url) \%>\%req_perform(path = "pic1.png")
+#Here is the image test.
+#For simple test,you need install 'png' package.
+#Note that when a mask is not provided, OpenAI defaults to using areas of the uploaded image
+#  with a transparency of 0 as the modification area.
+#The following test adds full image transparency of 0 (modifying the entire image) to pic1.
+# pic1<-readPNG("pic1.png")
+# if (dim(pic1)[3] == 3) {  # Checking if the image is RGB
+#   # Adding an alpha channel (fully opaque)
+#   alpha_channel <- matrix(0, nrow = dim(pic1)[1], ncol = dim(pic1)[2])
+#   pic1_b<-array(c(pic1,alpha_channel), c(1024,1024,4))
+# }
+# writePNG(pic1_b,target = "pic1_b.png")
+# pic3<-aaa$images_edits(image = "pic1_b.png",
+# prompt = "Please modify the bird in the picture to a flock of birds."
+#  ,verbosity = 3,n="2",size="256x256")
+# request(pic3$data$url[1]) \%>\%req_perform(path = "pic3_1.png")
+# request(pic3$data$url[2]) \%>\%req_perform(path = "pic3_2.png")
+#
+# pic4<-aaa$images_variations(image = "pic1.png",n="2",size="256x256")
+# request(pic4$data$url[1]) \%>\%req_perform(path = "pic4_1.png")
+# request(pic4$data$url[2]) \%>\%req_perform(path = "pic4_2.png")
 }
 }
 \section{Methods}{
@@ -73,6 +104,7 @@ streamlg$get_state()
 \item \href{#method-openai-set_proxy}{\code{openai$set_proxy()}}
 \item \href{#method-openai-get_model_list}{\code{openai$get_model_list()}}
 \item \href{#method-openai-get_model_retrieve}{\code{openai$get_model_retrieve()}}
+\item \href{#method-openai-fine_tuning_jobs_delete}{\code{openai$fine_tuning_jobs_delete()}}
 \item \href{#method-openai-get_completions_query}{\code{openai$get_completions_query()}}
 \item \href{#method-openai-get_chat_completions_query}{\code{openai$get_chat_completions_query()}}
 \item \href{#method-openai-files_upload}{\code{openai$files_upload()}}
@@ -85,6 +117,12 @@ streamlg$get_state()
 \item \href{#method-openai-fine_tuning_jobs_cancel}{\code{openai$fine_tuning_jobs_cancel()}}
 \item \href{#method-openai-fine_tuning_jobs_events}{\code{openai$fine_tuning_jobs_events()}}
 \item \href{#method-openai-embeddings}{\code{openai$embeddings()}}
+\item \href{#method-openai-audio_speech}{\code{openai$audio_speech()}}
+\item \href{#method-openai-audio_transcriptions}{\code{openai$audio_transcriptions()}}
+\item \href{#method-openai-audio_translations}{\code{openai$audio_translations()}}
+\item \href{#method-openai-images_generations}{\code{openai$images_generations()}}
+\item \href{#method-openai-images_edits}{\code{openai$images_edits()}}
+\item \href{#method-openai-images_variations}{\code{openai$images_variations()}}
 \item \href{#method-openai-clone}{\code{openai$clone()}}
 }
 }
@@ -167,6 +205,28 @@ Details of the specified model.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-openai-fine_tuning_jobs_delete"></a>}}
+\if{latex}{\out{\hypertarget{method-openai-fine_tuning_jobs_delete}{}}}
+\subsection{Method \code{fine_tuning_jobs_delete()}}{
+Delete a fine-tuned model from OpenAI.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{openai$fine_tuning_jobs_delete(model_id, verbosity = 0)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{model_id}}{The ID of the file to delete.}
+
+\item{\code{verbosity}}{Verbosity level for the API call.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Response indicating the success or failure of the delete operation.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-openai-get_completions_query"></a>}}
 \if{latex}{\out{\hypertarget{method-openai-get_completions_query}{}}}
 \subsection{Method \code{get_completions_query()}}{
@@ -176,9 +236,9 @@ Get completions for a given prompt using a specific model.
   prompt,
   model,
   stream = F,
-  ...,
   num = 2,
-  verbosity = 0
+  verbosity = 0,
+  ...
 )}\if{html}{\out{</div>}}
 }
 
@@ -191,13 +251,13 @@ Get completions for a given prompt using a specific model.
 
 \item{\code{stream}}{A boolean indicating whether to stream the results.}
 
-\item{\code{...}}{Additional parameters as required by the OpenAI API.}
-
 \item{\code{num}}{The num parameter controls the number of text entries returned by a stream in one go.
 Note that this is different from the n parameter, which specifies the number of results returned.
 For detailed information on the n parameter, please refer to OpenAI's API documentation.}
 
 \item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:max_tokens;n;stop;temperature......}
 }
 \if{html}{\out{</div>}}
 }
@@ -215,9 +275,9 @@ Generate conversational completions using chat models.
   messages,
   model,
   stream = F,
-  ...,
   num = 2,
-  verbosity = 0
+  verbosity = 0,
+  ...
 )}\if{html}{\out{</div>}}
 }
 
@@ -230,13 +290,13 @@ Generate conversational completions using chat models.
 
 \item{\code{stream}}{A boolean indicating whether to stream the results.}
 
-\item{\code{...}}{Additional parameters as required by the OpenAI API.}
-
 \item{\code{num}}{The num parameter controls the number of text entries returned by a stream in one go.
 Note that this is different from the n parameter, which specifies the number of results returned.
 For detailed information on the n parameter, please refer to OpenAI's API documentation.}
 
 \item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:max_tokens;n;stop;temperature......}
 }
 \if{html}{\out{</div>}}
 }
@@ -250,7 +310,7 @@ Completions based on the conversational context.
 \subsection{Method \code{files_upload()}}{
 Upload a file to OpenAI.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{openai$files_upload(path, purpose = "fine-tune", verbosity = 0)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{openai$files_upload(path, verbosity = 0, purpose)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -258,9 +318,9 @@ Upload a file to OpenAI.
 \describe{
 \item{\code{path}}{Path to the file that needs to be uploaded.}
 
-\item{\code{purpose}}{Purpose of the file (e.g., "fine-tune").}
-
 \item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{purpose}}{Purpose of the file (e.g., "fine-tune").}
 }
 \if{html}{\out{</div>}}
 }
@@ -341,7 +401,7 @@ Create a fine-tuning job in OpenAI.
 \if{html}{\out{<div class="r">}}\preformatted{openai$fine_tuning_jobs_create(
   model,
   training_file,
-  n_epochs = 1,
+  hyperparameters = list(n_epochs = 1),
   verbosity = 0,
   ...
 )}\if{html}{\out{</div>}}
@@ -354,11 +414,11 @@ Create a fine-tuning job in OpenAI.
 
 \item{\code{training_file}}{The file used for training.}
 
-\item{\code{n_epochs}}{Number of epochs for the fine-tuning.}
+\item{\code{hyperparameters}}{params list for the fine-tuning include batch_size;learning_rate_multiplier;n_epochs.}
 
 \item{\code{verbosity}}{Verbosity level for the API call.}
 
-\item{\code{...}}{Additional parameters as required by the OpenAI API.}
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:validation_file......}
 }
 \if{html}{\out{</div>}}
 }
@@ -372,15 +432,15 @@ Response indicating the success or failure of the fine-tuning job creation.
 \subsection{Method \code{fine_tuning_jobs_list()}}{
 List fine-tuning jobs from OpenAI.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{openai$fine_tuning_jobs_list(..., verbosity = 0)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{openai$fine_tuning_jobs_list(verbosity = 0, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{Additional parameters as required by the OpenAI API.}
-
 \item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.}
 }
 \if{html}{\out{</div>}}
 }
@@ -472,12 +532,172 @@ Compute embeddings for input data using a specified model in OpenAI.
 
 \item{\code{verbosity}}{Verbosity level for the API call.}
 
-\item{\code{...}}{Additional parameters as required by the OpenAI API.}
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:encoding_format;user....}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 Embeddings for the input data.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-openai-audio_speech"></a>}}
+\if{latex}{\out{\hypertarget{method-openai-audio_speech}{}}}
+\subsection{Method \code{audio_speech()}}{
+Generates audio from the input text.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{openai$audio_speech(
+  model = "tts-1",
+  input,
+  voice = "alloy",
+  verbosity = 0,
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{model}}{One of the available TTS models: tts-1 or tts-1-hd}
+
+\item{\code{input}}{The text to generate audio for. The maximum length is 4096 characters.}
+
+\item{\code{voice}}{The voice to use when generating the audio. Supported voices are alloy, echo, fable, onyx, nova, and shimmer.}
+
+\item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:response_format;speed....}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The audio file content.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-openai-audio_transcriptions"></a>}}
+\if{latex}{\out{\hypertarget{method-openai-audio_transcriptions}{}}}
+\subsection{Method \code{audio_transcriptions()}}{
+Transcribes audio into the input language.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{openai$audio_transcriptions(path, model = "whisper-1", verbosity = 0, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{path}}{The audio file object (not file name) to transcribe, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.}
+
+\item{\code{model}}{ID of the model to use. Only whisper-1 is currently available.}
+
+\item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:language;prompt;response_format;temperature....}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The transcribed text.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-openai-audio_translations"></a>}}
+\if{latex}{\out{\hypertarget{method-openai-audio_translations}{}}}
+\subsection{Method \code{audio_translations()}}{
+Translates audio into English.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{openai$audio_translations(path, model = "whisper-1", verbosity = 0, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{path}}{The audio file object (not file name) to transcribe, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.}
+
+\item{\code{model}}{ID of the model to use. Only whisper-1 is currently available.}
+
+\item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:prompt;response_format;temperature....}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The transcribed text.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-openai-images_generations"></a>}}
+\if{latex}{\out{\hypertarget{method-openai-images_generations}{}}}
+\subsection{Method \code{images_generations()}}{
+Creates an image given a prompt.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{openai$images_generations(prompt, verbosity = 0, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{prompt}}{A text description of the desired image(s). The maximum length is 1000 characters for dall-e-2 and 4000 characters for dall-e-3}
+
+\item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:n;quality;response_format...}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Returns a list of image objects.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-openai-images_edits"></a>}}
+\if{latex}{\out{\hypertarget{method-openai-images_edits}{}}}
+\subsection{Method \code{images_edits()}}{
+Creates an edited or extended image given an original image and a prompt.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{openai$images_edits(image, prompt, verbosity = 0, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{image}}{The image to edit. Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have transparency, which will be used as the mask.}
+
+\item{\code{prompt}}{A text description of the desired image(s). The maximum length is 1000 characters.}
+
+\item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:mask;model;n...}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Returns a list of image objects.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-openai-images_variations"></a>}}
+\if{latex}{\out{\hypertarget{method-openai-images_variations}{}}}
+\subsection{Method \code{images_variations()}}{
+Creates a variation of a given image.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{openai$images_variations(image, verbosity = 0, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{image}}{The image to use as the basis for the variation(s). Must be a valid PNG file, less than 4MB, and square.}
+
+\item{\code{verbosity}}{Verbosity level for the API call.}
+
+\item{\code{...}}{Additional parameters as required by the OpenAI API.For example:model;n;response_format}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Returns a list of image objects.
 }
 }
 \if{html}{\out{<hr>}}
