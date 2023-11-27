@@ -65,6 +65,18 @@
 #' streamlg$get_state()
 #' sss<-aaa$audio_speech(input = "Hi, this is a voice transmission test.",response_format="mp3")
 #' #writeBin(sss,"test.mp3")
+#'
+#' streammp3<-aaa$audio_speech(input = "Hi, this is a voice transmission test",
+#'               response_format="mp3",stream = TRUE,num=1000)
+#' streammp3$get_state()
+#' #fcon <- file("yourfile.mp3", "wb")
+#' #for(i in 1:3){
+#' #   writeBin(streammp3$next_value,fcon)
+#' #}
+#' streammp3$close()
+#' streammp3$next_value
+#' streammp3$get_state()
+#'
 #' #text_E1<-aaa$audio_transcriptions(path = "test.mp3")
 #' #text_E2<-aaa$audio_translations(path = "test.mp3")
 #' pic1<-aaa$images_generations(prompt = "A small bird flies over the ocean")
@@ -419,19 +431,29 @@ openai <- R6Class(
     #' @param model One of the available TTS models: tts-1 or tts-1-hd
     #' @param input The text to generate audio for. The maximum length is 4096 characters.
     #' @param voice The voice to use when generating the audio. Supported voices are alloy, echo, fable, onyx, nova, and shimmer.
-    #' @param verbosity Verbosity level for the API call.
+    #' @param verbosity Verbosity level for the API call.#'
+    #' @param stream Using the stream call, it will return raw data of the specified length,
+    #'      which can be saved in the set format such as mp3, etc. For details, please see the examples.
+    #' @param num The num parameter controls the number of raw entries returned by a stream in one go.
+    #'            Note that this is different from the n parameter, which specifies the number of results returned.
+    #'            For detailed information on the n parameter, please refer to OpenAI's API documentation.
     #' @param ... Additional parameters as required by the OpenAI API.For example:response_format;speed....
     #' @return The audio file content.
-    audio_speech=function(model="tts-1",input,voice="alloy",verbosity=0,...){
+    audio_speech=function(model="tts-1",input,voice="alloy",stream=F,num=100,verbosity=0,...){
       option <- list(...)
       option$model <- model
       option$input <- input
       option$voice <- voice
-      result <- private$api_call("audio", body = option,"/speech",method = "POST", headers = list(`Content-Type` = "application/json"), verbosity = verbosity)
-      if (inherits(result, "openai_error")) {
-        return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
-      }else{
-        return(result$data)
+      if (stream) {
+        handle <- private$handle_call("audio", body=option,path="/speech", headers=list(Accept="text/event-stream", `Content-Type` = "application/json"))
+        return(DataStream$new(requery = handle , num = num))
+      } else {
+        result <- private$api_call("audio", body = option,"/speech",method = "POST", headers = list(`Content-Type` = "application/json"), verbosity = verbosity)
+        if (inherits(result, "openai_error")) {
+          return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
+        }else{
+          return(result$data)
+        }
       }
     },
     #' @description Transcribes audio into the input language.

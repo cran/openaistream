@@ -56,27 +56,36 @@ DataStream <- R6::R6Class(
         })
       }
       if (private$status =="httr2_open") {
-        buf <- readLines(private$requery, private$num * 2)
-        lstr <- lapply(buf, function(v) {
-          if (nchar(v) < 20) {
-            if ("data: [DONE]" == v) {
-              private$destroy("complete")
+        if(grepl(summary(private$requery)$description,pattern = "speech")){
+          buf <- readBin(private$requery,what = "raw", private$num * 2)
+          if(length(buf)==0){
+            private$destroy("complete")
+          }
+          return(buf)
+        }else{
+          #这部分处理对话链接，使用连接分段
+          buf <- readLines(private$requery, private$num * 2)
+          lstr <- lapply(buf, function(v) {
+            if (nchar(v) < 20) {
+              if ("data: [DONE]" == v) {
+                private$destroy("complete")
+              }
+              return("")
+            } else {
+              return(gsub(v, replacement = "", pattern = "data: "))
             }
-            return("")
-          } else {
-            return(gsub(v, replacement = "", pattern = "data: "))
-          }
-        })
-        lstr_cleaned <- lstr[nchar(unlist(lstr)) > 1]
-        vres <- unlist(lapply(lstr_cleaned, function(v) {
-          choices <- fromJSON(v)$choices
-          if (is.null(choices$text)) {
-            return(choices)
-          } else {
-            return(choices$text)
-          }
-        }))
-        return(list(all_resp = lstr_cleaned, vres = vres))
+          })
+          lstr_cleaned <- lstr[nchar(unlist(lstr)) > 1]
+          vres <- unlist(lapply(lstr_cleaned, function(v) {
+            choices <- fromJSON(v)$choices
+            if (is.null(choices$text)) {
+              return(choices)
+            } else {
+              return(choices$text)
+            }
+          }))
+          return(list(all_resp = lstr_cleaned, vres = vres))
+        }
       } else {
         return(private$status)
       }

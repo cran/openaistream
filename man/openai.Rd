@@ -70,6 +70,18 @@ streamlg$next_value
 streamlg$get_state()
 sss<-aaa$audio_speech(input = "Hi, this is a voice transmission test.",response_format="mp3")
 #writeBin(sss,"test.mp3")
+
+streammp3<-aaa$audio_speech(input = "Hi, this is a voice transmission test",
+              response_format="mp3",stream = TRUE,num=1000)
+streammp3$get_state()
+#fcon <- file("yourfile.mp3", "wb")
+#for(i in 1:3){
+#   writeBin(streammp3$next_value,fcon)
+#}
+streammp3$close()
+streammp3$next_value
+streammp3$get_state()
+
 #text_E1<-aaa$audio_transcriptions(path = "test.mp3")
 #text_E2<-aaa$audio_translations(path = "test.mp3")
 pic1<-aaa$images_generations(prompt = "A small bird flies over the ocean")
@@ -550,6 +562,8 @@ Generates audio from the input text.
   model = "tts-1",
   input,
   voice = "alloy",
+  stream = F,
+  num = 100,
   verbosity = 0,
   ...
 )}\if{html}{\out{</div>}}
@@ -564,7 +578,14 @@ Generates audio from the input text.
 
 \item{\code{voice}}{The voice to use when generating the audio. Supported voices are alloy, echo, fable, onyx, nova, and shimmer.}
 
-\item{\code{verbosity}}{Verbosity level for the API call.}
+\item{\code{stream}}{Using the stream call, it will return raw data of the specified length,
+which can be saved in the set format such as mp3, etc. For details, please see the examples.}
+
+\item{\code{num}}{The num parameter controls the number of raw entries returned by a stream in one go.
+Note that this is different from the n parameter, which specifies the number of results returned.
+For detailed information on the n parameter, please refer to OpenAI's API documentation.}
+
+\item{\code{verbosity}}{Verbosity level for the API call.#'}
 
 \item{\code{...}}{Additional parameters as required by the OpenAI API.For example:response_format;speed....}
 }
