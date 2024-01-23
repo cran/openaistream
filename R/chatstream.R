@@ -1,7 +1,7 @@
 #' DataStream Class
 #'
 #' A R6 class to manage data streams.
-
+#'
 DataStream <- R6::R6Class(
   "DataStream",
   private = list(
@@ -10,15 +10,15 @@ DataStream <- R6::R6Class(
     iterator = NULL,
     num = 2,
     check = function() {
-      if (is.null(private$requery)) {
-        return("completed or requery is NULL_")
-      }
-      if (!inherits(private$requery, "curl")) {
+      if (!inherits(private$requery, "curl")||(Sys.getenv("TEST_EX_COND")=="error chatstream check is not curl")) {
         return("is not curl")
       }
       is_valid <- TRUE
       tryCatch({
         isOpen(private$requery)
+        if(Sys.getenv("TEST_EX_COND")=="error chatstream active isOpen"){
+          stop(Sys.getenv("TEST_EX_COND"))
+        }
         is_valid <- FALSE
       }, error = function(e) {
         is_valid <- TRUE
@@ -49,6 +49,9 @@ DataStream <- R6::R6Class(
       if (private$status == "httr2_close") {
         tryCatch({
           open(private$requery, "rbf")
+          if(Sys.getenv("TEST_EX_COND")=="error chatstream data_source open is fail"){
+            stop(Sys.getenv("TEST_EX_COND"))
+          }
           private$status = "httr2_open"
         }, error = function(e) {
           private$status <- paste0(private$status, " open is fail")
@@ -78,13 +81,19 @@ DataStream <- R6::R6Class(
           lstr_cleaned <- lstr[nchar(unlist(lstr)) > 1]
           vres <- unlist(lapply(lstr_cleaned, function(v) {
             choices <- fromJSON(v)$choices
+            res<-choices$text
             if (is.null(choices$text)) {
-              return(choices)
-            } else {
-              return(choices$text)
+              res<-choices
             }
+            res
           }))
-          return(list(all_resp = lstr_cleaned, vres = vres))
+          #lstr_cleaned length is zero complete
+          if(length(lstr_cleaned)==0){
+            private$destroy("complete")
+            "complete"
+          }else{
+            list(all_resp = lstr_cleaned, vres = vres)
+          }
         }
       } else {
         return(private$status)
@@ -108,6 +117,9 @@ DataStream <- R6::R6Class(
     close = function(){
       tryCatch({
         private$destroy()
+        if(Sys.getenv("TEST_EX_COND")=="error chatstream close"){
+          stop(Sys.getenv("TEST_EX_COND"))
+        }
         return("close success")
       }, error = function(e) {
         return(e)
@@ -128,10 +140,17 @@ DataStream <- R6::R6Class(
         if(is.null(private$iterator)){
           return(private$status)
         }
+        if(Sys.getenv("TEST_EX_COND")=="error chatstream active next value"){
+            stop(Sys.getenv("TEST_EX_COND"))
+        }
         nextElem(private$iterator)
+
       }, error = function(e) {
         return(e)
       })
     }
   )
 )
+
+
+
