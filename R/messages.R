@@ -15,7 +15,7 @@ messages <- R6Class(
       option <- list(...)
       option$role <- role
       option$content <- content
-      result<-private$api_call("threads", paste0("/", thread_id,"/messages"),body = option, method = "POST",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v1"), verbosity = verbosity)
+      result<-private$api_call("threads", paste0("/", thread_id,"/messages"),body = option, method = "POST",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v2"), verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{
@@ -29,7 +29,7 @@ messages <- R6Class(
     #'                  2:show headers and bodies;3: show headers, bodies, and curl status messages.)
     #' @return The message object matching the specified ID.
     retrieve=function(thread_id,message_id,verbosity=0){
-      result <- private$api_call("threads", paste0("/", thread_id,"/messages/",message_id), method = "GET",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v1"), verbosity = verbosity)
+      result <- private$api_call("threads", paste0("/", thread_id,"/messages/",message_id), method = "GET",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v2"), verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{
@@ -45,7 +45,7 @@ messages <- R6Class(
     #' @return The modified message object.
     modify=function(thread_id,message_id,...,verbosity=0){
       option <- list(...)
-      result <- private$api_call("threads", paste0("/", thread_id,"/messages/",message_id),body = option, method = "POST",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v1"), verbosity = verbosity)
+      result <- private$api_call("threads", paste0("/", thread_id,"/messages/",message_id),body = option, method = "POST",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v2"), verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{
@@ -60,36 +60,21 @@ messages <- R6Class(
     #' @return A list of message objects.
     list=function(thread_id,...,verbosity=0){
       option <- list(...)
-      result <- private$api_call("threads", paste0("/", thread_id,"/messages"),query = option, method = "GET",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v1"), verbosity = verbosity)
+      result <- private$api_call("threads", paste0("/", thread_id,"/messages"),query = option, method = "GET",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v2"), verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{
         return(result$data)
       }
     },
-    #' @description Retrieves a message file.
-    #' @param thread_id character Required. The ID of the thread the message belongs to.
-    #' @param message_id character Required. The ID of the message the file belongs to.
-    #' @param file_id character Required The ID of the file being retrieved.
+    #' @description Deletes a message.
+    #' @param thread_id character Required. The ID of the thread to which this message belongs.
+    #' @param message_id character Required. The ID of the message to delete.
     #' @param verbosity numeric Verbosity level for the API call(0:no output;1:show headers;
-    #' @return The message file object.
-    file_retrieve=function(thread_id,message_id,file_id,verbosity=0){
-      result <- private$api_call("threads", paste0("/", thread_id,"/messages/",message_id,"/files/",file_id), method = "GET",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v1"), verbosity = verbosity)
-      if (inherits(result, "openai_error")) {
-        return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
-      }else{
-        return(result$data)
-      }
-    },
-    #' @description Returns a list of message files.
-    #' @param thread_id character Required. The ID of the thread the message belongs to.
-    #' @param message_id character Required. The ID of the message the file belongs to.
-    #' @param verbosity numeric Verbosity level for the API call(0:no output;1:show headers;
-    #' @param ... Additional parameters as required by the OpenAI API.
-    #' @return A list of message file objects.
-    file_list=function(thread_id,message_id,...,verbosity=0){
-      option <- list(...)
-      result <- private$api_call("threads", paste0("/", thread_id,"/messages/",message_id,"/files"),query = option, method = "GET",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v1"), verbosity = verbosity)
+    #'                  2:show headers and bodies;3: show headers, bodies, and curl status messages.)
+    #' @return Deletion status
+    delete=function(thread_id,message_id,verbosity=0){
+      result <- private$api_call("threads", paste0("/", thread_id,"/messages/",message_id), method = "DELETE",headers = list(`Content-Type` = "application/json",`OpenAI-Beta`="assistants=v2"), verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{

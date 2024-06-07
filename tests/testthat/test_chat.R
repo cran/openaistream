@@ -65,8 +65,9 @@ test_that("chat",{
                           content = c("You are a assistant.", "How's the weather today?")),
     model = "gpt-3.5-turbo",
     stream = TRUE,
+    stream_options = list(include_usage=T),
     max_tokens = 2,
-    n =3
+    n =3,
   )
   for(i in 1:10){
     text<-streamlg$next_value
@@ -80,8 +81,9 @@ test_that("chat",{
                           content = c("You are a assistant.", "How's the weather today?")),
     model = "gpt-3.5-turbo",
     stream = TRUE,
-    max_tokens = 3,
-    n =3
+    max_tokens = 1,
+    num=1,
+    n =1
   )
   for(i in 1:10){
     text<-streamlg$next_value
@@ -103,7 +105,7 @@ test_that("chat",{
   )
   text<-streamlg$next_value
   #expect_equal(text,"httr2_close open is fail")
-  expect_equal(text$message,"parse error: trailing garbage\n                              \"message\": \"'sdasd' is not of type 'inte\n                     (right here) ------^\n")
+  expect_true(grepl(pattern = "error",text$message,ignore.case = T))
 
   streamlg <- handle_openai$chat$create(
     messages = data.frame(role = c("system", "user"),

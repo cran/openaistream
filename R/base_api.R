@@ -25,7 +25,6 @@ base_api <- R6Class(
     #get and post and delete call
     api_call = function(endpoint, path="", body=NULL, method="GET", headers=list(), query=list(), verbosity=0,fpath=NULL) {
       req<-private$base_call(endpoint, path=path, method=method, headers=headers, query=query)
-      #browser()
       if (!is.null(body)) {
         req <- req %>%req_body_json(body)
       }

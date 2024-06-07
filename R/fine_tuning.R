@@ -1,4 +1,4 @@
-#' DataStream Class
+#' fine_tuning Class
 fine_tuning <- R6Class(
   "fine_tuning",
   inherit = base_api,
@@ -74,6 +74,21 @@ fine_tuning <- R6Class(
     events=function(job_id,...,verbosity=0){
       option = list(...)
       result <- private$api_call("fine_tuning_jobs", query = option, paste0("/", job_id, "/", "events"),method = "GET", verbosity = verbosity)
+      if (inherits(result, "openai_error")) {
+        return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
+      }else{
+        return(result$data)
+      }
+    },
+    #' @description List checkpoints for a fine-tuning job.
+    #' @param job_id character Required. The ID of the fine-tuning job to get checkpoints for.
+    #' @param verbosity numeric. Verbosity level for the API call(0:no output;1:show headers;
+    #'                  2:show headers and bodies;3: show headers, bodies, and curl status messages.).
+    #' @param ... Additional parameters as required by the OpenAI API. For example:after,limit.
+    #' @return A list of fine-tuning checkpoint objects for a fine-tuning job.
+    checkpoints=function(job_id,...,verbosity=0){
+      option = list(...)
+      result <- private$api_call("fine_tuning_jobs", query = option, paste0("/", job_id, "/", "checkpoints"),method = "GET", verbosity = verbosity)
       if (inherits(result, "openai_error")) {
         return(list(success=FALSE, message=result$get_message(), type=result$get_type()))
       }else{

@@ -27,6 +27,7 @@ test_that("long time test",{
   res<-handle_openai$models$delete("gpt-3.5-turbo-sadsada")
   expect_true(!res$success)
   del_res<-handle_openai$files$delete(file_id$id, verbosity = 0)
+  del_res<-handle_openai$files$delete(job_retrieve$result_files, verbosity = 0)
   res<-handle_openai$models$retrieve(model = "gpt-3.5-turbo",verbosity = 0)
   expect_equal(res$id,"gpt-3.5-turbo")
   res<-handle_openai$models$retrieve(model = "gpt-3.5-turbo",verbosity = 200)

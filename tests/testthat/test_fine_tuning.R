@@ -21,6 +21,14 @@ test_that("test fileload and fine train",{
   #error test
   res<-handle_openai$fine_tuning$events(job$id, verbosity = 4)
   expect_true(!res$success)
+  
+  #test checkpoint
+  job_checkpoints<-handle_openai$fine_tuning$checkpoints(job$id, verbosity = 0)
+  expect_contains(names(job_events$data),"data")
+  
+  #error test
+  res<-handle_openai$fine_tuning$checkpoints(job$id, verbosity = 4)
+  expect_true(!res$success)
 
   job_retrieve<-handle_openai$fine_tuning$retrieve(job$id, verbosity = 0)
   expect_equal(job_retrieve$id,job$id)

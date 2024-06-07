@@ -1,7 +1,7 @@
 #' api_config Class
 #'
 #' A R6 class to manage config.
-#'
+#'re
 api_config <- R6Class(
   "api_config",
   private = list(
@@ -18,7 +18,9 @@ api_config <- R6Class(
       images = "https://api.openai.com/v1/images",
       assistants = "https://api.openai.com/v1/assistants",
       threads = "https://api.openai.com/v1/threads",
-      moderations = "https://api.openai.com/v1/moderations"
+      moderations = "https://api.openai.com/v1/moderations",
+      batchs = "https://api.openai.com/v1/batches",
+      vector_stores = "https://api.openai.com/v1/vector_stores"
     )
   ),
   public = list(

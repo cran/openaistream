@@ -59,14 +59,17 @@ DataStream <- R6::R6Class(
         })
       }
       if (private$status =="httr2_open") {
-        if(grepl(summary(private$requery)$description,pattern = "speech")){
+        #获取流数据endpoint
+        ept<-summary(private$requery)$description
+        if(grepl(ept,pattern = "api.openai.com/v1/audio/speech")){
           buf <- readBin(private$requery,what = "raw", private$num * 2)
           if(length(buf)==0){
             private$destroy("complete")
           }
           return(buf)
-        }else{
-          #这部分处理对话链接，使用连接分段
+        }else{#else if(grepl(summary(private$requery)$description,pattern = "api.openai.com//v1//threads")){}
+          #browser()
+          #这部分处理对话链接，使用连接分段,这里在处理run数据时不知为啥会遇到空行
           buf <- readLines(private$requery, private$num * 2)
           lstr <- lapply(buf, function(v) {
             if (nchar(v) < 20) {
@@ -75,25 +78,39 @@ DataStream <- R6::R6Class(
               }
               return("")
             } else {
-              return(gsub(v, replacement = "", pattern = "data: "))
+              return(gsub(v, replacement = "", pattern = "^data: "))
             }
           })
           lstr_cleaned <- lstr[nchar(unlist(lstr)) > 1]
-          vres <- unlist(lapply(lstr_cleaned, function(v) {
-            choices <- fromJSON(v)$choices
-            res<-choices$text
-            if (is.null(choices$text)) {
-              res<-choices
-            }
-            res
-          }))
-          #lstr_cleaned length is zero complete
+          #browser()
           if(length(lstr_cleaned)==0){
             private$destroy("complete")
-            "complete"
-          }else{
-            list(all_resp = lstr_cleaned, vres = vres)
+            return("complete")
           }
+          #browser()
+          #print(lstr_cleaned)
+          if(grepl(ept,pattern = "api.openai.com/v1/threads")){
+            #这里处理run的数据
+            vres <- lapply(grep(lstr_cleaned,pattern = "^event: ",value = T), function(v) {
+              fromJSON(v)
+            })
+          }else{
+            #这里处理chat数据
+            vres <- lapply(lstr_cleaned, function(v) {
+              pr = fromJSON(v)
+              choices <- pr$choices
+              if(length(choices)==0&!is.null(pr$usage)){
+                return(data.frame(index="-2",content=paste0("usage:",pr$usage$total_tokens)))
+              }else{
+                #else if(length(choices)==0){
+                #return(data.frame(index="-1",content=""))
+                #}
+                return(data.frame(index=choices$index[1],choices$delta))
+              }
+            })
+          }
+          #lstr_cleaned length is zero complete
+          list(all_resp = lstr_cleaned, vres = vres)
         }
       } else {
         return(private$status)
@@ -144,7 +161,6 @@ DataStream <- R6::R6Class(
             stop(Sys.getenv("TEST_EX_COND"))
         }
         nextElem(private$iterator)
-
       }, error = function(e) {
         return(e)
       })
